@@ -1,44 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useAuth } from "@/contexts/auth-context"
 import { Header } from "@/components/header"
-import { TicketCard } from "@/components/ticket-card"
-import { ConfirmationModal } from "@/components/confirmation-modal"
-import { CancellationConfirmedModal } from "@/components/cancellation-confirmed-modal"
+import { UserTicketsView } from "@/components/user-tickets-view"
+import { useRouter } from "next/navigation"
 
 export default function TicketsPage() {
-  const [showConfirmation, setShowConfirmation] = useState(false)
-  const [showCancelled, setShowCancelled] = useState(false)
-  const [actionType, setActionType] = useState<"cancel" | "refund">("cancel")
+  const { user } = useAuth()
+  const router = useRouter()
 
-  const handleAction = (type: "cancel" | "refund") => {
-    setActionType(type)
-    setShowConfirmation(true)
-  }
-
-  const handleConfirm = () => {
-    setShowConfirmation(false)
-    setShowCancelled(true)
+  if (!user) {
+    router.push("/")
+    return null
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <Header />
       <main className="container mx-auto px-6 py-8">
-        <h1 className="mb-6 text-3xl font-bold text-foreground">Tickets</h1>
-
-        <div className="flex justify-center">
-          <TicketCard onCancel={() => handleAction("cancel")} onRefund={() => handleAction("refund")} />
-        </div>
-
-        <ConfirmationModal
-          isOpen={showConfirmation}
-          onClose={() => setShowConfirmation(false)}
-          onConfirm={handleConfirm}
-          actionType={actionType}
-        />
-
-        <CancellationConfirmedModal isOpen={showCancelled} onClose={() => setShowCancelled(false)} />
+        <UserTicketsView />
       </main>
     </div>
   )

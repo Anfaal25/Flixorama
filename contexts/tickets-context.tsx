@@ -15,6 +15,7 @@ export interface Ticket {
   status: "active" | "past" | "cancelled" | "pending_cancellation" | "pending_transfer"
   purchaseDate: string
   userId: string
+  image?: string // Added image field
 }
 
 export interface CancellationRequest {
@@ -35,6 +36,7 @@ interface TicketsContextType {
   requestTransfer: (ticketId: string) => void
   approveCancellation: (requestId: string) => void
   rejectCancellation: (requestId: string) => void
+  addTicket: (ticket: Omit<Ticket, "id" | "status" | "purchaseDate">) => void // Added addTicket method
 }
 
 const TicketsContext = createContext<TicketsContextType | undefined>(undefined)
@@ -53,6 +55,7 @@ const INITIAL_TICKETS: Ticket[] = [
     status: "active",
     purchaseDate: "2025-01-10",
     userId: "1",
+    image: "/generic-superhero-team-poster.png", // Added image
   },
   {
     id: "TKT-002",
@@ -66,6 +69,7 @@ const INITIAL_TICKETS: Ticket[] = [
     status: "active",
     purchaseDate: "2025-01-11",
     userId: "1",
+    image: "/space-movie-poster.png", // Added image
   },
   {
     id: "TKT-003",
@@ -79,6 +83,7 @@ const INITIAL_TICKETS: Ticket[] = [
     status: "past",
     purchaseDate: "2024-12-15",
     userId: "1",
+    image: "/detective-movie-poster.jpg", // Added image
   },
   {
     id: "TKT-004",
@@ -92,6 +97,7 @@ const INITIAL_TICKETS: Ticket[] = [
     status: "active",
     purchaseDate: "2025-01-12",
     userId: "1",
+    image: "/romance-movie-poster.png", // Added image
   },
 ]
 
@@ -184,6 +190,19 @@ export function TicketsProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("cinema_tickets", JSON.stringify(updatedTickets))
   }
 
+  const addTicket = (ticketData: Omit<Ticket, "id" | "status" | "purchaseDate">) => {
+    const newTicket: Ticket = {
+      ...ticketData,
+      id: `TKT-${Date.now()}`,
+      status: "active",
+      purchaseDate: new Date().toISOString(),
+    }
+
+    const updatedTickets = [...tickets, newTicket]
+    setTickets(updatedTickets)
+    localStorage.setItem("cinema_tickets", JSON.stringify(updatedTickets))
+  }
+
   return (
     <TicketsContext.Provider
       value={{
@@ -193,6 +212,7 @@ export function TicketsProvider({ children }: { children: React.ReactNode }) {
         requestTransfer,
         approveCancellation,
         rejectCancellation,
+        addTicket, // Added to context value
       }}
     >
       {children}

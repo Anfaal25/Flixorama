@@ -32,34 +32,39 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <Card className="w-full max-w-md shadow-lg border-gray-200">
+        <CardHeader className="space-y-4 text-center pb-8">
           <div className="flex justify-center">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <Film className="h-8 w-8 text-primary" />
+            <div className="bg-cyan-500/10 p-4 rounded-full">
+              <Film className="h-10 w-10 text-cyan-500" />
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl">Welcome to Flixorama Cinema</CardTitle>
-            <CardDescription className="mt-2">Sign in to manage your tickets</CardDescription>
+            <CardTitle className="text-3xl text-gray-900">Flixorama Cinema</CardTitle>
+            <CardDescription className="mt-3 text-base text-gray-600">Sign in to your account</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="px-8 pb-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="user@cinema.com"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-12 border-gray-300"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -67,18 +72,27 @@ export function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-12 border-gray-300"
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <Button
+              type="submit"
+              className="w-full h-12 bg-cyan-500 hover:bg-cyan-600 text-white text-base"
+              disabled={isLoading}
+            >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-          <div className="mt-6 space-y-2 text-sm text-muted-foreground">
-            <p className="font-medium">Demo Accounts:</p>
+          <div className="mt-8 space-y-2 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+            <p className="font-semibold text-gray-800">Demo Accounts:</p>
             <div className="space-y-1 text-xs">
-              <p>User: user@cinema.com / user123</p>
-              <p>Admin: admin@cinema.com / admin123</p>
+              <p>
+                <strong>User:</strong> user@cinema.com / user123
+              </p>
+              <p>
+                <strong>Admin:</strong> admin@cinema.com / admin123
+              </p>
             </div>
           </div>
         </CardContent>
