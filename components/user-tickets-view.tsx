@@ -27,6 +27,7 @@ export function UserTicketsView() {
   const [showTransferDialog, setShowTransferDialog] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [showGuestAlert, setShowGuestAlert] = useState(false)
   const [cancelReason, setCancelReason] = useState("")
   const [actionType, setActionType] = useState<"cancel" | "transfer">("cancel")
 
@@ -35,12 +36,22 @@ export function UserTicketsView() {
   const pastTickets = userTickets.filter((t) => t.status === "past" || t.status === "cancelled")
 
   const handleCancelClick = () => {
+    if (user?.role === "guest") {
+      setShowCancelDialog(false)
+      setShowGuestAlert(true)
+      return
+    }
     setActionType("cancel")
     setShowCancelDialog(false)
     setShowConfirmDialog(true)
   }
 
   const handleTransferClick = () => {
+    if (user?.role === "guest") {
+      setShowTransferDialog(false)
+      setShowGuestAlert(true)
+      return
+    }
     setActionType("transfer")
     setShowTransferDialog(false)
     setShowConfirmDialog(true)
@@ -181,7 +192,7 @@ export function UserTicketsView() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <TicketIcon className="h-16 w-16 text-muted-foreground mb-4" />
-                <p className="text-foreground text-lg">No past tickets</p>
+                <p className="text-lg">No past tickets</p>
               </CardContent>
             </Card>
           ) : (
@@ -193,6 +204,29 @@ export function UserTicketsView() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Guest Alert Dialog */}
+      <Dialog open={showGuestAlert} onOpenChange={setShowGuestAlert}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Action Not Available</DialogTitle>
+            <DialogDescription>Guest users cannot cancel or transfer tickets</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <p className="text-sm text-yellow-900 dark:text-yellow-100">
+                As a guest user, you cannot cancel or transfer tickets. Please create an account to access these
+                features.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowGuestAlert(false)} className="bg-cyan-500 hover:bg-cyan-600 w-full">
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Cancel Reason Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>

@@ -2,11 +2,13 @@
 
 import { useState } from "react"
 import { Header } from "@/components/header"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth, getUserProfile } from "@/contexts/auth-context"
 import { useTickets } from "@/contexts/tickets-context"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Dialog,
   DialogContent,
@@ -15,9 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Clock, Calendar, CheckCircle2, Armchair } from "lucide-react"
+import { Clock, Calendar, CheckCircle2, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 const movies = [
@@ -68,17 +70,17 @@ const movies = [
 ]
 
 const generateSeats = () => {
-  const rows = ["A", "B", "C", "D", "E", "F"]
-  const seatsPerRow = 20
+  const rows = 7 // 7 rows to match the image
+  const seatsPerRow = 11 // 11 seats per row
   const allSeats = []
 
-  for (const row of rows) {
+  for (let row = 1; row <= rows; row++) {
     for (let i = 1; i <= seatsPerRow; i++) {
       allSeats.push({
         id: `${row}-${i}`,
         row,
         number: i,
-        status: Math.random() > 0.7 ? "booked" : "available", // Some seats are pre-booked
+        status: Math.random() > 0.75 ? "booked" : "available",
       })
     }
   }
@@ -91,12 +93,17 @@ export default function MoviesPage() {
   const { addTicket } = useTickets()
   const router = useRouter()
   const [showBookingDialog, setShowBookingDialog] = useState(false)
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [showGuestWarning, setShowGuestWarning] = useState(false)
   const [selectedMovie, setSelectedMovie] = useState<(typeof movies)[0] | null>(null)
   const [selectedShowtime, setSelectedShowtime] = useState("")
   const [selectedDate, setSelectedDate] = useState("")
-  const [selectedSeat, setSelectedSeat] = useState("")
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([])
   const [seats, setSeats] = useState(generateSeats())
+  const [guestEmail, setGuestEmail] = useState("")
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("")
+  const [emailError, setEmailError] = useState("")
 
   const availableDates = Array.from({ length: 7 }, (_, i) => {
     const date = new Date()
@@ -110,30 +117,94 @@ export default function MoviesPage() {
   }
 
   const handleBookClick = (movie: (typeof movies)[0]) => {
+    if (user.role === "guest") {
+      setSelectedMovie(movie)
+      setShowGuestWarning(true)
+      return
+    }
     setSelectedMovie(movie)
     setSelectedShowtime("")
     setSelectedDate("")
-    setSelectedSeat("")
-    setSeats(generateSeats()) // Generate fresh seat layout
+    setSelectedSeats([])
+    setSeats(generateSeats())
+    setShowBookingDialog(true)
+  }
+
+  const handleGuestContinue = () => {
+    setShowGuestWarning(false)
+    setSelectedShowtime("")
+    setSelectedDate("")
+    setSelectedSeats([])
+    setSeats(generateSeats())
     setShowBookingDialog(true)
   }
 
   const handleConfirmBooking = () => {
-    if (selectedMovie && selectedShowtime && selectedDate && selectedSeat) {
-      addTicket({
-        movieTitle: selectedMovie.title,
-        showtime: selectedShowtime,
-        date: selectedDate,
-        theater: `Theater ${Math.floor(Math.random() * 5) + 1}`,
-        seat: selectedSeat,
-        screen: `Screen ${Math.floor(Math.random() * 3) + 1}`,
-        price: selectedMovie.price,
-        userId: user.id,
-        image: selectedMovie.image,
-      })
+    if (selectedMovie && selectedShowtime && selectedDate && selectedSeats.length > 0) {
       setShowBookingDialog(false)
-      setShowSuccessDialog(true)
+      setShowPaymentDialog(true)
     }
+  }
+
+  const handlePaymentConfirm = () => {
+    if (user?.role === "guest") {
+      if (!guestEmail || !guestEmail.includes("@")) {
+        setEmailError("Please enter a valid email address")
+        return
+      }
+      if (!selectedPaymentMethod) {
+        setEmailError("Please select a payment method")
+        return
+      }
+    } else {
+      const userProfile = getUserProfile(user!.id)
+      if (!selectedPaymentMethod && userProfile?.paymentMethods.length) {
+        setEmailError("Please select a payment method")
+        return
+      }
+    }
+
+    if (selectedMovie && selectedShowtime && selectedDate && selectedSeats.length > 0) {
+      // Add ticket for each selected seat
+      selectedSeats.forEach((seat) => {
+        addTicket({
+          movieTitle: selectedMovie.title,
+          showtime: selectedShowtime,
+          date: selectedDate,
+          theater: `Theater ${Math.floor(Math.random() * 5) + 1}`,
+          seat,
+          screen: `Screen ${Math.floor(Math.random() * 3) + 1}`,
+          price: selectedMovie.price,
+          userId: user!.id,
+          image: selectedMovie.image,
+        })
+      })
+      setShowPaymentDialog(false)
+      setShowSuccessDialog(true)
+      resetBookingStates()
+    }
+  }
+
+  const resetBookingStates = () => {
+    setSelectedShowtime("")
+    setSelectedDate("")
+    setSelectedSeats([])
+    setSeats(generateSeats())
+    setGuestEmail("")
+    setSelectedPaymentMethod("")
+    setEmailError("")
+  }
+
+  const toggleSeat = (seatId: string, status: string) => {
+    if (status === "booked") return
+
+    setSelectedSeats((prev) => {
+      if (prev.includes(seatId)) {
+        return prev.filter((id) => id !== seatId)
+      } else {
+        return [...prev, seatId]
+      }
+    })
   }
 
   return (
@@ -188,12 +259,54 @@ export default function MoviesPage() {
         </div>
       </main>
 
+      <Dialog open={showGuestWarning} onOpenChange={setShowGuestWarning}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Guest Mode Limitations</DialogTitle>
+            <DialogDescription>You are browsing as a guest. Please note the following restrictions:</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <span className="text-yellow-600 dark:text-yellow-400">⚠️</span>
+                <div>
+                  <p className="font-medium text-yellow-900 dark:text-yellow-100">Tickets cannot be cancelled</p>
+                  <p className="text-yellow-700 dark:text-yellow-300 text-xs mt-1">
+                    Guest tickets are final and cannot be refunded
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <span className="text-yellow-600 dark:text-yellow-400">⚠️</span>
+                <div>
+                  <p className="font-medium text-yellow-900 dark:text-yellow-100">Tickets cannot be transferred</p>
+                  <p className="text-yellow-700 dark:text-yellow-300 text-xs mt-1">
+                    You cannot transfer tickets to other users
+                  </p>
+                </div>
+              </div>
+              <p className="text-muted-foreground text-xs pt-2">
+                Create an account for full access to all features and flexibility with your tickets.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowGuestWarning(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleGuestContinue} className="bg-cyan-500 hover:bg-cyan-600">
+              Continue Anyway
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Book Ticket</DialogTitle>
             <DialogDescription>
-              Select your preferred date, showtime, and seat for {selectedMovie?.title}
+              Select your preferred date, showtime, and seats for {selectedMovie?.title}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
@@ -242,44 +355,54 @@ export default function MoviesPage() {
               </RadioGroup>
             </div>
 
+            {/* Seat Selection */}
             <div className="space-y-4">
-              <Label className="text-base font-semibold">Select Seat</Label>
+              <Label className="text-base font-semibold">Select Seats</Label>
 
-              {/* Screen indicator */}
-              <div className="bg-gradient-to-b from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-800 py-4 rounded-lg text-center border-b-4 border-gray-300 dark:border-gray-600">
-                <span className="text-lg font-bold tracking-widest">SCREEN</span>
+              {/* Screen indicator with curved design */}
+              <div className="relative py-8 mb-8">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4">
+                  <svg viewBox="0 0 600 60" className="w-full">
+                    <path
+                      d="M 10 50 Q 300 10 590 50"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      className="text-gray-400 dark:text-gray-600"
+                    />
+                  </svg>
+                </div>
+                <div className="text-center pt-12">
+                  <span className="text-xs font-medium text-muted-foreground tracking-widest">SCREEN</span>
+                </div>
               </div>
 
-              {/* Seat grid with visual chair icons */}
-              <div className="bg-black/90 dark:bg-black p-6 rounded-lg">
+              {/* Seat grid matching the theater layout */}
+              <div className="bg-gray-800 p-8 rounded-lg">
                 <div className="space-y-2">
-                  {["A", "B", "C", "D", "E", "F"].map((row) => (
-                    <div key={row} className="flex items-center gap-1">
-                      <span className="w-6 text-white text-xs font-bold">{row}</span>
-                      <div className="flex gap-1 flex-1 justify-center">
+                  {[1, 2, 3, 4, 5, 6, 7].map((row) => (
+                    <div key={row} className="flex items-center gap-2 justify-center">
+                      <span className="w-6 text-gray-400 text-sm font-medium">{row}</span>
+                      <div className="flex gap-1.5">
                         {seats
                           .filter((seat) => seat.row === row)
                           .map((seat) => (
                             <button
                               key={seat.id}
-                              onClick={() => seat.status === "available" && setSelectedSeat(seat.id)}
+                              onClick={() => toggleSeat(seat.id, seat.status)}
                               disabled={seat.status === "booked"}
-                              className={`relative w-7 h-7 rounded-t-md transition-all ${
+                              className={`relative w-9 h-9 rounded-md transition-all ${
                                 seat.status === "booked"
-                                  ? "bg-red-600 cursor-not-allowed opacity-80"
-                                  : selectedSeat === seat.id
-                                    ? "bg-purple-500 scale-110 shadow-lg"
-                                    : "bg-fuchsia-500 hover:bg-fuchsia-400 hover:scale-105"
+                                  ? "bg-gray-600 cursor-not-allowed opacity-50"
+                                  : selectedSeats.includes(seat.id)
+                                    ? "bg-amber-500 scale-105 shadow-lg"
+                                    : "bg-gray-400 hover:bg-gray-300"
                               }`}
                               title={seat.status === "booked" ? "Unavailable" : seat.id}
-                            >
-                              <Armchair className="w-4 h-4 absolute inset-0 m-auto text-white/90" />
-                              <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
-                                {seat.number}
-                              </span>
-                            </button>
+                            />
                           ))}
                       </div>
+                      <span className="w-6 text-gray-400 text-sm font-medium">{row}</span>
                     </div>
                   ))}
                 </div>
@@ -287,21 +410,15 @@ export default function MoviesPage() {
                 {/* Legend */}
                 <div className="flex justify-center gap-6 mt-6 text-white text-xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 bg-fuchsia-500 rounded-t-md flex items-center justify-center">
-                      <Armchair className="w-3 h-3" />
-                    </div>
+                    <div className="w-6 h-6 bg-gray-400 rounded-md" />
                     <span>Available</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 bg-purple-500 rounded-t-md flex items-center justify-center">
-                      <Armchair className="w-3 h-3" />
-                    </div>
+                    <div className="w-6 h-6 bg-amber-500 rounded-md" />
                     <span>Selected</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 bg-red-600 rounded-t-md flex items-center justify-center">
-                      <Armchair className="w-3 h-3" />
-                    </div>
+                    <div className="w-6 h-6 bg-gray-600 rounded-md opacity-50" />
                     <span>Booked</span>
                   </div>
                 </div>
@@ -309,14 +426,19 @@ export default function MoviesPage() {
             </div>
 
             {/* Price Summary */}
-            {selectedDate && selectedShowtime && selectedSeat && (
-              <div className="rounded-lg border-2 border-cyan-500 bg-cyan-50/30 dark:bg-cyan-950/30 p-4">
+            {selectedDate && selectedShowtime && selectedSeats.length > 0 && (
+              <div className="rounded-lg border-2 border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/30 p-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm text-muted-foreground">Selected Seat: {selectedSeat}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Selected Seats: {selectedSeats.join(", ")} ({selectedSeats.length}{" "}
+                      {selectedSeats.length === 1 ? "seat" : "seats"})
+                    </p>
                     <span className="font-semibold">Total Price:</span>
                   </div>
-                  <span className="text-2xl font-bold text-cyan-600">${selectedMovie?.price.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-emerald-600">
+                    ${((selectedMovie?.price || 0) * selectedSeats.length).toFixed(2)}
+                  </span>
                 </div>
               </div>
             )}
@@ -327,10 +449,141 @@ export default function MoviesPage() {
             </Button>
             <Button
               onClick={handleConfirmBooking}
-              disabled={!selectedDate || !selectedShowtime || !selectedSeat}
-              className="bg-cyan-500 hover:bg-cyan-600"
+              disabled={!selectedDate || !selectedShowtime || selectedSeats.length === 0}
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
-              Confirm Booking
+              Continue to Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Payment Details</DialogTitle>
+            <DialogDescription>Complete your booking by providing payment information</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Booking Summary */}
+            <div className="p-4 bg-muted rounded-lg space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Movie:</span>
+                <span className="font-medium">{selectedMovie?.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Date:</span>
+                <span className="font-medium">
+                  {selectedDate &&
+                    new Date(selectedDate).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Time:</span>
+                <span className="font-medium">{selectedShowtime}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Seats:</span>
+                <span className="font-medium">{selectedSeats.join(", ")}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t">
+                <span className="font-semibold">Total:</span>
+                <span className="font-bold text-emerald-600">
+                  ${((selectedMovie?.price || 0) * selectedSeats.length).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {/* Guest Email Input */}
+            {user?.role === "guest" && (
+              <div className="space-y-2">
+                <Label htmlFor="guest-email">Email Address *</Label>
+                <Input
+                  id="guest-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={guestEmail}
+                  onChange={(e) => {
+                    setGuestEmail(e.target.value)
+                    setEmailError("")
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">Your ticket will be sent to this email</p>
+              </div>
+            )}
+
+            {/* Payment Method Selection for Guests */}
+            {user?.role === "guest" && (
+              <div className="space-y-2">
+                <Label htmlFor="guest-payment">Payment Method *</Label>
+                <Select
+                  value={selectedPaymentMethod}
+                  onValueChange={(value) => {
+                    setSelectedPaymentMethod(value)
+                    setEmailError("")
+                  }}
+                >
+                  <SelectTrigger id="guest-payment">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="credit">Credit Card</SelectItem>
+                    <SelectItem value="debit">Debit Card</SelectItem>
+                    <SelectItem value="paypal">PayPal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Payment Method Selection for Registered Users */}
+            {user?.role !== "guest" &&
+              getUserProfile(user!.id)?.paymentMethods &&
+              getUserProfile(user!.id)!.paymentMethods.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="payment-method">Select Payment Method *</Label>
+                  <Select
+                    value={selectedPaymentMethod}
+                    onValueChange={(value) => {
+                      setSelectedPaymentMethod(value)
+                      setEmailError("")
+                    }}
+                  >
+                    <SelectTrigger id="payment-method">
+                      <SelectValue placeholder="Choose a payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getUserProfile(user!.id)!.paymentMethods.map((method) => (
+                        <SelectItem key={method.id} value={method.id}>
+                          {method.type} •••• {method.last4}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+            {emailError && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                <p className="text-sm text-red-600 dark:text-red-400">{emailError}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPaymentDialog(false)
+                setShowBookingDialog(true)
+              }}
+            >
+              Back
+            </Button>
+            <Button onClick={handlePaymentConfirm} className="bg-emerald-600 hover:bg-emerald-700">
+              Confirm Payment
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -345,20 +598,27 @@ export default function MoviesPage() {
               </div>
             </div>
             <DialogTitle className="text-center">Booking Confirmed!</DialogTitle>
-            <DialogDescription className="text-center">
-              Your ticket for {selectedMovie?.title} has been successfully booked. Check your tickets section to view
-              details.
+            <DialogDescription className="text-center space-y-2">
+              <p>Your ticket for {selectedMovie?.title} has been successfully booked.</p>
+              <div className="flex items-center justify-center gap-2 text-sm bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-blue-700 dark:text-blue-300">
+                  Confirmation and ticket sent to {user?.role === "guest" ? guestEmail : user?.email}
+                </span>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center">
             <Button
               onClick={() => {
                 setShowSuccessDialog(false)
-                router.push("/tickets")
+                if (user?.role !== "guest") {
+                  router.push("/tickets")
+                }
               }}
-              className="bg-cyan-500 hover:bg-cyan-600 w-full sm:w-auto"
+              className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
             >
-              View My Tickets
+              {user?.role === "guest" ? "Done" : "View My Tickets"}
             </Button>
           </DialogFooter>
         </DialogContent>
