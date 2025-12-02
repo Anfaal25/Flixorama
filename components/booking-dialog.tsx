@@ -370,10 +370,14 @@ export default function BookingDialog({
               </p>
               {user.role === "guest" ? (
                 <p className="text-sm">
-                  As a guest, you&apos;ll receive a secure payment link in that
-                  email. Complete payment through the link to finalize your
-                  booking and have your ticket activated.
+                  As a guest, you will receive a secure payment link at the email address you provide. 
+                  Please complete the payment through that link to finalize your booking and activate your ticket.
+                  <br /><br />
+                  <strong className="text-red-500">
+                    Note: Guest bookings cannot be cancelled or transferred.
+                  </strong>
                 </p>
+
               ) : (
                 <p className="text-sm">
                   Your payment has been processed and your ticket is now
