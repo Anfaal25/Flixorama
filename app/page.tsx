@@ -63,7 +63,7 @@ export default function Home() {
                   <Sparkles className="h-6 w-6 text-purple-500" />
                 </div>
                 <CardTitle>IMAX</CardTitle>
-                <CardDescription>Experience stunning visuals on the biggest screen</CardDescription>
+                <CardDescription>Experience stunning visuals on IMAX</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button className="w-full bg-purple-500 hover:bg-purple-600">View IMAX</Button>

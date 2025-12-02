@@ -2,50 +2,35 @@
 
 import { useState } from "react";
 import { Header } from "@/components/header";
+import MovieCard from "@/components/movie-card";
 import BookingDialog from "@/components/booking-dialog";
-
+import { Video } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTickets } from "@/contexts/tickets-context";
-
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-
-import { Clock, Calendar, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const movies3D = [
   {
     id: 1,
-    title: "Depths of Atlantis",
-    description:
-      "Explore the mysterious underwater world brought to life with stunning 3D effects.",
-    genre: "Adventure, Fantasy",
-    duration: "132 min",
+    title: "Cosmic Odyssey",
+    description: "Immerse yourself in a three-dimensional journey through space and time.",
+    genre: "Sci-Fi, Adventure",
+    duration: "142 min",
     rating: "PG",
-    showtimes: ["12:30 PM", "4:00 PM", "7:45 PM"],
-    image: "/3d-atlantis-poster.jpg",
+    showtimes: ["1:30 PM", "4:45 PM", "7:30 PM", "10:15 PM"],
+    image: "/space-3d-movie-poster.jpg",
     price: 18.99,
   },
   {
     id: 2,
-    title: "Galaxy Raiders 3D",
-    description:
-      "An interstellar battle that comes straight off the screen in this thrilling 3D experience.",
+    title: "Avengers: Quantum 801",
+    description: "Watch heroes leap off the screen in stunning 3D action sequences.",
     genre: "Action, Sci-Fi",
-    duration: "141 min",
+    duration: "156 min",
     rating: "PG-13",
-    showtimes: ["1:15 PM", "5:00 PM", "9:00 PM"],
-    image: "/3d-galaxy-raiders.jpg",
-    price: 19.49,
+    showtimes: ["2:00 PM", "5:30 PM", "8:45 PM"],
+    image: "/avengers-3d-poster.jpg",
+    price: 17.99,
   },
 ];
 
@@ -55,17 +40,12 @@ export default function ThreeDPage() {
   const router = useRouter();
 
   const [showBooking, setShowBooking] = useState(false);
-  const [selectedMovie, setSelectedMovie] = useState<any>(null);
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   if (!user) {
     router.push("/");
     return null;
   }
-
-  const handleBook = (movie: any) => {
-    setSelectedMovie(movie);
-    setShowBooking(true);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,54 +61,21 @@ export default function ThreeDPage() {
           Dive into immersive 3D worlds where every scene comes alive.
         </p>
 
-        {/* Movies Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {movies3D.map((movie) => (
-            <Card
+            <MovieCard
               key={movie.id}
-              className="border-cyan-500/20 hover:shadow-lg transition"
-            >
-              <div className="aspect-[2/3] bg-muted overflow-hidden">
-                <img
-                  src={movie.image}
-                  className="object-cover w-full h-full"
-                  alt={movie.title}
-                />
-              </div>
-
-              <CardHeader>
-                <CardTitle>{movie.title}</CardTitle>
-                <Badge className="bg-cyan-500">3D</Badge>
-                <CardDescription className="line-clamp-2">
-                  {movie.description}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  {movie.duration}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                  <Calendar className="h-4 w-4" />
-                  {movie.genre}
-                </div>
-              </CardContent>
-
-              <CardFooter>
-                <Button
-                  className="w-full bg-cyan-500 hover:bg-cyan-600"
-                  onClick={() => handleBook(movie)}
-                >
-                  Book 3D Tickets
-                </Button>
-              </CardFooter>
-            </Card>
+              movie={movie}
+              badge={{ label: "3D", className: "bg-cyan-500" }}
+              onBook={() => {
+                setSelectedMovie(movie);
+                setShowBooking(true);
+              }}
+            />
           ))}
         </div>
       </main>
 
-      {/* Booking Component */}
       <BookingDialog
         movie={selectedMovie}
         open={showBooking}

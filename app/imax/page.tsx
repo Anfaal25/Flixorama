@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { Header } from "@/components/header";
+import MovieCard from "@/components/movie-card";
 import BookingDialog from "@/components/booking-dialog";
+import { Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTickets } from "@/contexts/tickets-context";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Calendar, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const imaxMovies = [
@@ -41,8 +39,8 @@ export default function IMAXPage() {
   const { addTicket } = useTickets();
   const router = useRouter();
 
-  const [selectedMovie, setSelectedMovie] = useState<any>(null);
-  const [showBooking, setShowBooking] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   if (!user) {
     router.push("/");
@@ -63,51 +61,29 @@ export default function IMAXPage() {
           Ultra-immersive screens. Wall-shaking audio. Pure cinematic immersion.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {imaxMovies.map((movie) => (
-            <Card key={movie.id} className="border-purple-500/20 hover:shadow-lg transition">
-              <div className="aspect-[2/3] bg-muted overflow-hidden">
-                <img src={movie.image} className="object-cover w-full h-full" />
-              </div>
-
-              <CardHeader>
-                <CardTitle>{movie.title}</CardTitle>
-                <Badge className="bg-purple-500">IMAX</Badge>
-                <CardDescription className="line-clamp-2">{movie.description}</CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  {movie.duration}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                  <Calendar className="h-4 w-4" />
-                  {movie.genre}
-                </div>
-              </CardContent>
-
-              <CardFooter>
-                <Button className="w-full bg-purple-500 hover:bg-purple-600" onClick={() => {
-                  setSelectedMovie(movie);
-                  setShowBooking(true);
-                }}>
-                  Book IMAX Tickets
-                </Button>
-              </CardFooter>
-            </Card>
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              badge={{ label: "IMAX", className: "bg-purple-500" }}
+              onBook={() => {
+                setSelectedMovie(movie);
+                setBookingOpen(true);
+              }}
+            />
           ))}
         </div>
       </main>
 
       <BookingDialog
         movie={selectedMovie}
-        open={showBooking}
-        onOpenChange={setShowBooking}
+        open={bookingOpen}
+        onOpenChange={setBookingOpen}
         format="IMAX"
         seatLayout={{
           rows: ["A", "B", "C", "D", "E", "F"],
-          seatsPerRow: 20
+          seatsPerRow: 20,
         }}
         onConfirm={addTicket}
       />

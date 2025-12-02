@@ -2,14 +2,11 @@
 
 import { useState } from "react";
 import { Header } from "@/components/header";
+import MovieCard from "@/components/movie-card";
 import BookingDialog from "@/components/booking-dialog";
+import { Armchair } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTickets } from "@/contexts/tickets-context";
-
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Calendar, Armchair } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 const vipMovies = [
@@ -42,8 +39,8 @@ export default function VIPPage() {
   const { addTicket } = useTickets();
   const router = useRouter();
 
-  const [selectedMovie, setSelectedMovie] = useState<any>(null);
-  const [showBooking, setShowBooking] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   if (!user) {
     router.push("/");
@@ -64,51 +61,29 @@ export default function VIPPage() {
           Recliners, gourmet food, and a premium theater experience.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {vipMovies.map((movie) => (
-            <Card key={movie.id} className="border-orange-500/20 hover:shadow-lg transition">
-              <div className="aspect-[2/3] bg-muted overflow-hidden">
-                <img src={movie.image} className="object-cover w-full h-full" />
-              </div>
-
-              <CardHeader>
-                <CardTitle>{movie.title}</CardTitle>
-                <Badge className="bg-orange-500">VIP</Badge>
-                <CardDescription className="line-clamp-2">{movie.description}</CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  {movie.duration}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                  <Calendar className="h-4 w-4" />
-                  {movie.genre}
-                </div>
-              </CardContent>
-
-              <CardFooter>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={() => {
-                  setSelectedMovie(movie);
-                  setShowBooking(true);
-                }}>
-                  Book VIP Tickets
-                </Button>
-              </CardFooter>
-            </Card>
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              badge={{ label: "VIP", className: "bg-orange-500" }}
+              onBook={() => {
+                setSelectedMovie(movie);
+                setBookingOpen(true);
+              }}
+            />
           ))}
         </div>
       </main>
 
       <BookingDialog
         movie={selectedMovie}
-        open={showBooking}
-        onOpenChange={setShowBooking}
+        open={bookingOpen}
+        onOpenChange={setBookingOpen}
         format="VIP"
         seatLayout={{
           rows: ["A", "B", "C", "D", "E", "F"],
-          seatsPerRow: 20
+          seatsPerRow: 20,
         }}
         onConfirm={addTicket}
       />

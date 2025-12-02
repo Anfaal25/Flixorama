@@ -192,7 +192,7 @@ export function AdminDashboardView() {
               </div>
               <DialogTitle className="text-center">Cancellation Confirmed</DialogTitle>
               <DialogDescription className="text-center">
-                The ticket has been successfully cancelled and the customer will be notified.
+                The ticket has been successfully cancelled and the customer will be notified via email.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-center">

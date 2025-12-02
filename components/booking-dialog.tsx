@@ -3,13 +3,19 @@
 import { useState } from "react";
 import { useAuth, getUserProfile } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Mail } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 interface BookingDialogProps {
   movie: any | null;
@@ -29,7 +35,7 @@ export default function BookingDialog({
   onOpenChange,
   format,
   seatLayout,
-  onConfirm
+  onConfirm,
 }: BookingDialogProps) {
   const { user } = useAuth();
 
@@ -53,7 +59,7 @@ export default function BookingDialog({
           id: `${row}-${i}`,
           row,
           number: i,
-          status: Math.random() > 0.75 ? "booked" : "available"
+          status: Math.random() > 0.75 ? "booked" : "available",
         });
       }
     }
@@ -73,25 +79,13 @@ export default function BookingDialog({
     setSelectedShowtime("");
     setSelectedSeats([]);
     setSeats(generateSeats());
-    setGuestEmail("");
     setSelectedPaymentMethod("");
     setEmailError("");
   };
 
-  const handleStartBooking = () => {
-    if (user.role === "guest") {
-      setGuestWarning(true);
-      return;
-    }
-    resetAll();
-    onOpenChange(true);
-  };
-
   const toggleSeat = (id: string, status: string) => {
     if (status === "booked") return;
-    setSelectedSeats(prev =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
+    setSelectedSeats((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   };
 
   const handleContinueToPayment = () => {
@@ -133,13 +127,14 @@ export default function BookingDialog({
         email: confirmationEmail,
         theater: `${format} Theater`,
         screen: `${format} Screen`,
-        poster: movie.image
+        poster: movie.image,
       });
     });
 
     setPaymentDialog(false);
     setSuccessDialog(true);
-    resetAll();
+    // resetAll() will be called when success dialog is closed so that guestEmail
+    // is still available for the confirmation message
   };
 
   return (
@@ -154,45 +149,53 @@ export default function BookingDialog({
             </DialogDescription>
           </DialogHeader>
 
-          {/* DATE SELECTION */}
           <div className="space-y-6 py-4">
-            <Label className="text-base font-semibold">Select Date</Label>
-            <RadioGroup value={selectedDate} onValueChange={setSelectedDate} className="grid grid-cols-4 gap-2">
-              {availableDates.map((date) => (
-                <div key={date}>
-                  <RadioGroupItem value={date} id={`date-${date}`} className="peer sr-only" />
-                  <Label
-                    htmlFor={`date-${date}`}
-                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-cyan-500 cursor-pointer"
-                  >
-                    <span className="text-xs font-medium">
-                      {new Date(date).toLocaleDateString("en-US", { weekday: "short" })}
-                    </span>
-                    <span className="text-sm">
-                      {new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+            {/* DATE SELECTION */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Select Date</Label>
+              <RadioGroup value={selectedDate} onValueChange={setSelectedDate} className="grid grid-cols-4 gap-2">
+                {availableDates.map((date) => (
+                  <div key={date}>
+                    <RadioGroupItem value={date} id={`date-${date}`} className="peer sr-only" />
+                    <Label
+                      htmlFor={`date-${date}`}
+                      className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-cyan-500 cursor-pointer"
+                    >
+                      <span className="text-xs font-medium">
+                        {new Date(date).toLocaleDateString("en-US", { weekday: "short" })}
+                      </span>
+                      <span className="text-sm">
+                        {new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </span>
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
 
             {/* SHOWTIMES */}
-            <Label className="text-base font-semibold">Select Showtime</Label>
-            <RadioGroup value={selectedShowtime} onValueChange={setSelectedShowtime} className="grid grid-cols-3 gap-2">
-              {movie?.showtimes.map((time: string) => (
-                <div key={time}>
-                  <RadioGroupItem value={time} id={`time-${time}`} className="peer sr-only" />
-                  <Label
-                    htmlFor={`time-${time}`}
-                    className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-cyan-500 cursor-pointer"
-                  >
-                    {time}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Select Showtime</Label>
+              <RadioGroup
+                value={selectedShowtime}
+                onValueChange={setSelectedShowtime}
+                className="grid grid-cols-3 gap-2"
+              >
+                {movie?.showtimes.map((time: string) => (
+                  <div key={time}>
+                    <RadioGroupItem value={time} id={`time-${time}`} className="peer sr-only" />
+                    <Label
+                      htmlFor={`time-${time}`}
+                      className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-3 peer-data-[state=checked]:border-cyan-500 cursor-pointer"
+                    >
+                      {time}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
 
-            {/* SCREEN */}
+            {/* SCREEN LABEL */}
             <div className="text-center py-4">
               <span className="text-xs font-bold tracking-widest text-muted-foreground">SCREEN</span>
             </div>
@@ -202,7 +205,6 @@ export default function BookingDialog({
               {seatLayout.rows.map((row: any) => (
                 <div key={row} className="flex items-center gap-1 justify-center">
                   <span className="w-6 text-white text-xs">{row}</span>
-
                   <div className="flex gap-1">
                     {seats
                       .filter((s) => s.row === row)
@@ -215,10 +217,10 @@ export default function BookingDialog({
                             seat.status === "booked"
                               ? "bg-gray-600 opacity-60 cursor-not-allowed"
                               : selectedSeats.includes(seat.id)
-                                ? "bg-amber-500 scale-110"
-                                : "bg-gray-300 hover:bg-gray-200"
+                              ? "bg-amber-500 scale-110"
+                              : "bg-gray-300 hover:bg-gray-200"
                           }`}
-                        ></button>
+                        />
                       ))}
                   </div>
                 </div>
@@ -232,14 +234,16 @@ export default function BookingDialog({
                   Selected Seats: {selectedSeats.join(", ")} ({selectedSeats.length})
                 </p>
                 <p className="text-xl font-bold text-emerald-600">
-                  ${ (movie.price * selectedSeats.length).toFixed(2) }
+                  ${(movie.price * selectedSeats.length).toFixed(2)}
                 </p>
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
             <Button
               onClick={handleContinueToPayment}
               disabled={!selectedDate || !selectedShowtime || selectedSeats.length === 0}
@@ -259,15 +263,25 @@ export default function BookingDialog({
 
           <div className="space-y-4">
             {/* Booking Summary */}
-            <div className="p-4 border rounded-lg">
-              <p><strong>Movie:</strong> {movie?.title}</p>
-              <p><strong>Format:</strong> {format}</p>
-              <p><strong>Date:</strong> {selectedDate}</p>
-              <p><strong>Time:</strong> {selectedShowtime}</p>
-              <p><strong>Seats:</strong> {selectedSeats.join(", ")}</p>
+            <div className="p-4 border rounded-lg text-sm space-y-1">
+              <p>
+                <strong>Movie:</strong> {movie?.title}
+              </p>
+              <p>
+                <strong>Format:</strong> {format}
+              </p>
+              <p>
+                <strong>Date:</strong> {selectedDate}
+              </p>
+              <p>
+                <strong>Time:</strong> {selectedShowtime}
+              </p>
+              <p>
+                <strong>Seats:</strong> {selectedSeats.join(", ")}
+              </p>
             </div>
 
-            {/* GUEST EMAIL */}
+            {/* Guest email */}
             {user.role === "guest" && (
               <>
                 <Label>Email Address *</Label>
@@ -282,9 +296,15 @@ export default function BookingDialog({
               </>
             )}
 
-            {/* PAYMENT METHOD */}
+            {/* Payment method */}
             <Label>Payment Method *</Label>
-            <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
+            <Select
+              value={selectedPaymentMethod}
+              onValueChange={(val) => {
+                setSelectedPaymentMethod(val);
+                setEmailError("");
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select payment method" />
               </SelectTrigger>
@@ -309,7 +329,13 @@ export default function BookingDialog({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setPaymentDialog(false); onOpenChange(true); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPaymentDialog(false);
+                onOpenChange(true);
+              }}
+            >
               Back
             </Button>
             <Button onClick={handlePaymentConfirm}>Confirm Payment</Button>
@@ -318,7 +344,16 @@ export default function BookingDialog({
       </Dialog>
 
       {/* SUCCESS DIALOG */}
-      <Dialog open={successDialog} onOpenChange={setSuccessDialog}>
+      <Dialog
+        open={successDialog}
+        onOpenChange={(open) => {
+          setSuccessDialog(open);
+          if (!open) {
+            resetAll();
+            setGuestEmail("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
             <div className="flex justify-center mb-4">
@@ -327,9 +362,24 @@ export default function BookingDialog({
               </div>
             </div>
             <DialogTitle>Booking Confirmed!</DialogTitle>
-            <DialogDescription>
-              Confirmation email sent to{" "}
-              {user.role === "guest" ? guestEmail : user.email}
+            <DialogDescription className="space-y-2">
+              <p>
+                Confirmation email sent to{" "}
+                {user.role === "guest" ? guestEmail : user.email}
+                .
+              </p>
+              {user.role === "guest" ? (
+                <p className="text-sm">
+                  As a guest, you&apos;ll receive a secure payment link in that
+                  email. Complete payment through the link to finalize your
+                  booking and have your ticket activated.
+                </p>
+              ) : (
+                <p className="text-sm">
+                  Your payment has been processed and your ticket is now
+                  confirmed.
+                </p>
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
