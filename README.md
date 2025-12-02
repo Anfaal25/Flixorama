@@ -1,154 +1,339 @@
-# Flixorama Cinema - Movie Ticket Management System
+# Flixorama Cinema - Complete User Guide
 
-A modern movie ticket booking and management system built with Next.js, featuring user authentication, ticket booking, cancellation workflows, and admin approval systems.
+A comprehensive movie ticket booking and management system with authentication, payment processing, and admin workflows.
 
-## Features
-
-- **User Authentication**: Login, signup, and guest mode
-- **Movie Browsing**: Browse movies by category (Regular, IMAX, VIP, 3D)
-- **Ticket Booking**: Interactive seat selection with visual theater layout
-- **Ticket Management**: View upcoming and past tickets
-- **Cancellation/Transfer**: Request ticket cancellations or transfers (admin approval required)
-- **Admin Dashboard**: Approve or reject cancellation requests
-- **Account Management**: View profile, payment methods, and purchase history
-- **Dark Mode**: Full dark mode support
-- **Guest Mode**: Browse and book with limitations (no cancellations/transfers)
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18.x or higher
-- npm or yarn package manager
+## Quick Start
 
 ### Installation
 
-1. **Extract the project files** to your desired location
-
-2. **Open Terminal/Command Prompt** and navigate to the project folder:
+1. **Clone Repo** - Clone the project to your desired location
+2. **Open Terminal** - Navigate to the project folder:
    ```
    cd path/to/flixorama-cinema
    ```
-
-3. **Install dependencies**:
+3. **Install Dependencies**:
    ```
    npm install
    ```
-
-4. **Run the development server**:
+4. **Start Development Server**:
    ```
    npm run dev
    ```
-  
+5. **Open Browser** - Visit `http://localhost:3000`
 
-5. **Open your browser** and visit:
-   ```
-   http://localhost:3000
-   ```
-  
+---
 
 ## Demo Accounts
 
-### Regular User Account
+### Regular User
 - **Email**: `user@cinema.com`
 - **Password**: `user123`
-- Can book tickets, cancel, and transfer
+- Full access: book, cancel, transfer tickets
 
-### Admin Account
+### Admin
 - **Email**: `admin@cinema.com`
 - **Password**: `admin123`
-- Can approve/reject cancellation requests
+- Manage cancellation requests
 
 ### Guest Mode
-- Click "Continue as Guest" on login page
-- Can browse and book tickets
-- Cannot cancel or transfer tickets
+- Click "Continue as Guest" on login
+- Limited features (see restrictions below)
 
-## Project Structure
+---
 
-```
+## Complete Feature Guide
+
+### 1. Authentication & Login
+
+**First Time Access:**
+1. App opens to login screen
+2. Choose one of three options:
+   - **Login** - Enter email and password
+   - **Sign Up** - Create new account (name, email, password)
+   - **Continue as Guest** - Browse without account
+
+**Guest Mode Limitations:**
+- Cannot cancel tickets
+- Cannot transfer tickets
+- Must provide email for each booking
+- Payment via email link
+- No booking history saved
+
+---
+
+### 2. Browsing Movies
+
+**Movie Categories:**
+- **Movies** - All current releases
+- **IMAX** - Large format premium experience
+- **VIP** - Luxury seating with food/beverage service
+- **3D** - Three-dimensional immersive viewing
+
+**Each Movie Card Shows:**
+- Movie poster (uniform aspect ratio 2:3)
+- Title and rating (PG, PG-13, R)
+- Duration and genres
+- Available showtimes
+- "Book Tickets" button
+
+---
+
+### 3. Booking Tickets (Complete Flow)
+
+#### Step 1: Select Movie
+1. Navigate to any category (Movies, IMAX, VIP, 3D)
+2. Browse available movies
+3. Click "Book Tickets" on desired movie
+
+**Guest Warning:**
+- If guest mode, warning dialog appears
+- Shows limitations (no cancel/transfer)
+- Click "Continue Anyway" or "Cancel"
+
+#### Step 2: Select Date & Time
+1. **Date Selection**: Choose from next 7 days
+2. **Showtime Selection**: Choose from available times
+3. Both required to proceed
+
+#### Step 3: Select Seats
+**Seating Interface:**
+- Visual theater layout (7 rows × 11 seats)
+- Screen indicator at top
+- Color-coded seats:
+  - **Gray** - Booked (unavailable)
+  - **White** - Available
+  - **Orange (Amber)** - Your selection
+- Click seats to select/deselect
+- Can select multiple seats
+- Shows selected seat numbers and total price
+
+#### Step 4: Payment & Confirmation
+
+**Click "Continue to Payment"**
+
+**For Guest Users:**
+1. **Email Address** (required)
+   - Enter valid email
+   - Ticket will be sent here
+2. **Payment Method** (required)
+   - Email Payment Link
+   - Paypal
+   - Credit Card
+   - Debit Card
+3. **Email Payment Link Option:**
+   - Secure payment link sent to email
+   - Complete payment within 24 hours
+   - Booking confirmed after payment
+
+**For Registered Users:**
+1. Email auto-filled from account
+2. Choose from saved payment methods:
+   - Visa •••• 4242
+   - Mastercard •••• 5555
+3. Or add new payment method from account page
+
+**Booking Summary Shows:**
+- Movie title
+- Date and time
+- Selected seats
+- Total price
+
+**Click "Confirm Booking"**
+
+#### Step 5: Confirmation
+- Green checkmark appears
+- Success message displayed
+- Email notification sent with:
+  - Ticket details
+  - QR code (if registered user)
+  - Payment link (if guest with email payment)
+- Click "View My Tickets" to see booking
+
+---
+
+### 4. Managing Tickets
+
+**Access:** Click "My Tickets" in navigation
+
+#### Two Tabs Available:
+
+**Upcoming Tickets:**
+- Shows future movie bookings
+- Each ticket displays:
+  - Movie title and ticket ID
+  - Date, time, theater, seat
+  - Total price
+- Select tickets using checkboxes
+- Actions available:
+  - **Cancel Ticket** - Request cancellation
+  - **Transfer Ticket** - Transfer to another user (goes to admin for confirmation)
+
+**Past Purchases:**
+- Shows completed bookings
+- Read-only (no actions available)
+
+#### Cancellation Process (Registered Users):
+1. Select ticket(s) using checkbox
+2. Click "Cancel Ticket" button
+3. Confirmation dialog appears
+4. Click "Confirm Cancellation"
+5. Request sent to admin
+6. Ticket marked "Pending Review"
+7. Ticket grayed out until admin decision
+8. Email notification when processed
+
+**Guest Users:**
+- Cannot cancel tickets
+
+
+#### Transfer Process:
+- Shows confirmation message
+- Sends request to Admin
+- No functionality on admin side (upcoming feature)
+
+---
+
+### 5. Account Management
+
+**Access:** Click your name in header → "Account Settings"
+
+**Profile Information:**
+- Change password button
+
+**Payment Methods:**
+- View saved cards
+  - Visa •••• 4242
+  - Mastercard •••• 5555
+- Add new payment method
+- Remove payment methods
+
+**Past Purchases:**
+- Complete booking history
+- Movie name, date, time, seat
+
+**Actions Available:**
+- Change password
+- Manage payment methods
+- View complete transaction history
+
+---
+
+### 6. Admin Dashboard
+
+**Access:** Login with admin credentials
+
+**Admin View Shows:**
+- All pending cancellation requests
+- Table format with columns:
+  - Ticket ID
+  - Movie Name
+  - Theater
+  - Seat Number
+  - User Email
+  - Request Date
+  - Actions
+
+#### Processing Requests:
+
+**Approve Cancellation:**
+1. Click "Validate" button on request
+2. Confirmation dialog appears
+3. Click "Approve"
+4. Ticket refunded
+5. Removed from user's upcoming tickets
+6. User notified via email
+7. Request removed from admin queue
+
+**Reject Cancellation:**
+1. Click "Validate" button on request
+2. Confirmation dialog appears
+3. Click "Reject" (red button)
+4. Ticket remains active
+5. User can still use ticket
+6. User notified via email
+7. Request removed from admin queue
+
+**Admin Dashboard Features:**
+- Real-time request updates
+- Sortable columns
+- Search functionality
+- Bulk actions (future feature)
+
+---
+
+### 7. Dark Mode
+
+**Toggle Dark Mode:**
+- Click sun/moon icon in header
+- Instant theme switch
+- Preference saved
+
+**Fully Supported:**
+- All pages and components
+- Proper contrast ratios
+- Semantic color tokens
+- Readable in both modes
+
+---
+
+### 8. Navigation
+
+**Header Navigation:**
+- **Logo** - Return to home
+- **Movies** - All movies
+- **IMAX** - IMAX format
+- **VIP** - VIP experience
+- **3D** - 3D movies
+- **My Tickets** - View bookings
+- **User Menu** (click name):
+  - Account Settings
+  - Logout
+
+---
+
+## Payment Processing
+
+### For Registered Users:
+1. Select from saved payment methods
+2. Instant booking confirmation
+3. Receipt emailed immediately
+
+### For Guest Users:
+1. **Email Payment Link**
+   - Receive secure link via email
+   - Click link within 24 hours
+   - Complete payment on secure page
+   - Booking confirmed after payment
+   - Ticket emailed after payment
+
+---
+## Technical Details
+
+**Built With:**
+- Next.js 14 (React Framework)
+- TypeScript (Type Safety)
+- Tailwind CSS (Styling)
+- shadcn/ui (Components)
+
+**Project Structure:**
+\`\`\`
 flixorama-cinema/
-├── app/                    # Next.js app directory
-│   ├── movies/            # Regular movies page
-│   ├── imax/              # IMAX movies page
-│   ├── vip/               # VIP movies page
-│   ├── 3d/                # 3D movies page
-│   ├── tickets/           # User tickets page
-│   ├── account/           # User account page
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   ├── header.tsx        # Navigation header
-│   ├── login-form.tsx    # Authentication form
-│   ├── user-tickets-view.tsx    # User tickets view
-│   ├── admin-dashboard-view.tsx # Admin dashboard
-│   └── user-account-page.tsx    # Account settings
-├── contexts/             # React contexts
-│   ├── auth-context.tsx  # Authentication state
-│   └── tickets-context.tsx  # Tickets state
-└── public/               # Static assets
-```
+├── app/              # Pages
+│   ├── movies/      # Regular movies
+│   ├── imax/        # IMAX movies
+│   ├── vip/         # VIP movies
+│   ├── 3d/          # 3D movies
+│   ├── tickets/     # User tickets
+│   └── account/     # Account settings
+├── components/       # React components
+├── contexts/        # State management
+└── public/          # Static assets
+\`\`\`
 
-## Available Scripts
+**Available Scripts:**
+- `npm run dev` - Development server
+- `npm run build` - Production build
+- `npm start` - Production server
+- `npm run lint` - Code linting
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-
-## Technologies Used
-
-- **Next.js 14** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **shadcn/ui** - UI components
-- **Lucide React** - Icons
-
-## Features Guide
-
-### Booking Tickets
-1. Browse movies in any category
-2. Click "Book Tickets" on a movie
-3. Select date, showtime, and seat
-4. Confirm booking
-5. Receive email confirmation
-
-### Managing Tickets
-1. Navigate to "My Tickets"
-2. View "Upcoming" or "Past Purchases"
-3. Select a ticket to cancel or transfer
-4. Request is sent to admin for approval
-
-### Admin Approval
-1. Login as admin
-2. View pending cancellation requests
-3. Click "Validate" on a request
-4. Approve or reject the request
-
-### Account Settings
-1. Click on your profile name
-2. Select "Account Settings"
-3. View/edit profile information
-4. Change password
-5. View payment methods and purchase history
-
-## Guest Mode Limitations
-
-When using guest mode:
-- ⚠️ Tickets cannot be cancelled
-- ⚠️ Tickets cannot be transferred
-- ⚠️ No account history saved
-
-Create an account for full access to all features.
-
-## Dark Mode
-
-Toggle dark mode using the theme button in the header. Dark mode is fully supported across all pages and components.
-
-## Support
-
-For issues or questions, please check the demo accounts and ensure you're using the correct credentials.
-
-## License
-
-This is a demo project for educational purposes.
+---
