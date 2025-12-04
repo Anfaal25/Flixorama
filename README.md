@@ -9,7 +9,7 @@ A comprehensive movie ticket booking and management system with authentication, 
 1. **Clone Repo** - Clone the project to your desired location
 2. **Open Terminal** - Navigate to the project folder:
    ```
-   cd path/to/flixorama-cinema
+   cd path/to/flixorama
    ```
 3. **Install Dependencies**:
    ```
@@ -337,3 +337,9 @@ flixorama-cinema/
 - `npm run lint` - Code linting
 
 ---
+
+### Team Details 
+- Halanna Le - 30148215 - halanna.le@ucalgary.ca
+- Anfaal Mahbub - 30140009 - anfaal.mahbub@ucalgary.ca 
+- Youssef Mamoun - 30149233 - Youssef.Mamoun@ucalgary.ca
+- Collin Mtendamema - 30139450 - Collin.Mtendamema@ucalgary.ca
